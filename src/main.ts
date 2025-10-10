@@ -21,7 +21,9 @@ async function bootstrap() {
   );
 
   const port = process.env.PORT!;
-  await app.listen(port);
-  console.log(`🚀 Server running on http://localhost:${port}`);
+  await app.listen(port, '0.0.0.0'); // Listen on all interfaces
+  
+  console.log(`🚀 Server running on port ${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
 }
 bootstrap();
