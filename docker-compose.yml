@@ -39,7 +39,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: 7d
       GROQ_API_KEY: ${GROQ_API_KEY}
-      DEFAULT_AI_MODEL: llama-3.1-8b-instant
+      DEFAULT_AI_MODEL: ${DEFAULT_AI_MODEL}
       PORT: 3001
     depends_on:
       postgres:
