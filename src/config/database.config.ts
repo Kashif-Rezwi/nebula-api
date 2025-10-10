@@ -10,7 +10,8 @@ export default registerAs(
         type: 'postgres',
         url: process.env.DATABASE_URL,
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        synchronize: false, // NEVER true in production! (can drop data)
+        synchronize: true, // Auto-creates tables (for very first time)
+        // synchronize: false, // NEVER true in production! (can drop data)
         ssl: {
           rejectUnauthorized: false, // Required for Render Postgres
         },
