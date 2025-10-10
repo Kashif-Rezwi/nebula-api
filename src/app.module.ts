@@ -5,6 +5,7 @@ import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from './modules/auth/auth.module';
     }),
     UserModule,
     AuthModule,
+    ChatModule,
   ],
 })
 export class AppModule {}
