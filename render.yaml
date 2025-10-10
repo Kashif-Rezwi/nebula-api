@@ -1,0 +1,49 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: nebula-db
+    env: docker
+    plan: free
+    region: oregon
+    
+  # NestJS Backend
+  - type: web
+    name: nebula-api
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: nebula-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: nebula-db
+          property: port
+      - key: DATABASE_USER
+        fromDatabase:
+          name: nebula-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: nebula-db
+          property: password
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: nebula-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION
+        value: 7d
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DEFAULT_AI_MODEL
+        value: llama-3.1-8b-instant
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001

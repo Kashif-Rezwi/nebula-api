@@ -6,6 +6,7 @@ import jwtConfig from './config/jwt.config';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -21,5 +22,6 @@ import { ChatModule } from './modules/chat/chat.module';
     AuthModule,
     ChatModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
