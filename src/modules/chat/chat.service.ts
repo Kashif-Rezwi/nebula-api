@@ -134,7 +134,7 @@ export class ChatService {
   ): Promise<ConversationResponseDto> {
     const conversation = this.conversationRepository.create({
       userId,
-      title: createConversationDto.title || 'New Chat',
+      title: createConversationDto.title || 'Untitled',
     });
 
     const saved = await this.conversationRepository.save(conversation);
