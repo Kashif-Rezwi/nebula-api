@@ -60,23 +60,23 @@ export class ChatController {
     @Res() res: Response,
   ) {
     // Get the AI SDK v5 Response object from service
-    const aiResponse = await this.chatService.handleStreamingResponse(
+    const streamResponse = await this.chatService.handleStreamingResponse(
       conversationId,
       req.user.userId,
       chatRequest.messages as UIMessage[],
     );
 
     // Copy headers from AI SDK response to Express response
-    aiResponse.headers.forEach((value, key) => {
+    streamResponse.headers.forEach((value, key) => {
       res.setHeader(key, value);
     });
 
     // Set status code
-    res.status(aiResponse.status);
+    res.status(streamResponse.status);
 
     // Stream the body
-    if (aiResponse.body) {
-      const reader = aiResponse.body.getReader();
+    if (streamResponse.body) {
+      const reader = streamResponse.body.getReader();
       
       try {
         while (true) {
@@ -90,5 +90,21 @@ export class ChatController {
     }
 
     res.end();
+  }
+
+  // Generate title endpoint
+  @Post('conversations/:id/generate-title')
+  async generateTitle(
+    @Req() req,
+    @Param('id') conversationId: string,
+    @Body() body: { message: string },
+  ) {
+    const title = await this.chatService.generateTitle(
+      conversationId,
+      req.user.userId,
+      body.message,
+    );
+    
+    return { title };
   }
 }

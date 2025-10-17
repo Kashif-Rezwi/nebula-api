@@ -252,4 +252,44 @@ export class ChatService {
     return conversation;
   }
 
+  // Generate title for a conversation
+  async generateTitle(
+    conversationId: string,
+    userId: string,
+    userMessage: string,
+  ): Promise<string> {
+    // Verify ownership
+    await this.verifyOwnership(conversationId, userId);
+
+    // Generate title using AI
+    const messages: UIMessage[] = [
+      {
+        id: 'system',
+        role: 'system',
+        parts: [{
+          type: 'text',
+          text: 'Generate a short, concise title (max 6 words) for a conversation that starts with the following user message. Return ONLY the title, nothing else.'
+        }]
+      },
+      {
+        id: 'user',
+        role: 'user',
+        parts: [{
+          type: 'text',
+          text: userMessage
+        }]
+      }
+    ];
+
+    const title = await this.aiService.generateResponse(messages);
+    const cleanTitle = title.trim().replace(/^["']|["']$/g, '');
+
+    // Update conversation with the title
+    await this.conversationRepository.update(conversationId, {
+      title: cleanTitle,
+    });
+
+    return cleanTitle;
+  }
+
 }
