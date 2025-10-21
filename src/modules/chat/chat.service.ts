@@ -28,16 +28,36 @@ export class ChatService {
 
   // Convert database messages to UIMessage format for AI SDK
   private async getUIMessages(conversationId: string): Promise<UIMessage[]> {
+    const conversation = await this.conversationRepository.findOne({
+      where: { id: conversationId },
+    });
+  
     const messages = await this.messageRepository.find({
       where: { conversationId },
       order: { createdAt: 'ASC' },
     });
-
-    return messages.map((msg) => ({
-      id: msg.id,
-      role: msg.role as 'user' | 'assistant' | 'system',
-      parts: [{ type: 'text', text: msg.content }],
-    }));
+  
+    const uiMessages: UIMessage[] = [];
+  
+    // Prepend system prompt if exists
+    if (conversation?.systemPrompt) {
+      uiMessages.push({
+        id: 'system',
+        role: 'system',
+        parts: [{ type: 'text', text: conversation.systemPrompt }],
+      });
+    }
+  
+    // Add regular messages
+    messages.forEach((msg) => {
+      uiMessages.push({
+        id: msg.id,
+        role: msg.role as 'user' | 'assistant' | 'system',
+        parts: [{ type: 'text', text: msg.content }],
+      });
+    });
+  
+    return uiMessages;
   }
 
   // Extract text content from UIMessage parts
@@ -63,7 +83,6 @@ export class ChatService {
 
     return this.messageRepository.save(dbMessage);
   }
-
 
   // Save the assistant's response after streaming completes
   async saveAssistantResponse(
@@ -135,6 +154,7 @@ export class ChatService {
     const conversation = this.conversationRepository.create({
       userId,
       title: createConversationDto.title || 'Untitled',
+      systemPrompt: createConversationDto.systemPrompt,
     });
 
     const saved = await this.conversationRepository.save(conversation);
@@ -142,8 +162,29 @@ export class ChatService {
     return new ConversationResponseDto({
       id: saved.id,
       title: saved.title,
+      systemPrompt: saved.systemPrompt,
       createdAt: saved.createdAt,
       updatedAt: saved.updatedAt,
+    });
+  }
+
+  // Update system prompt
+  async updateSystemPrompt(
+    conversationId: string,
+    userId: string,
+    systemPrompt: string,
+  ): Promise<ConversationResponseDto> {
+    const conversation = await this.verifyOwnership(conversationId, userId);
+  
+    conversation.systemPrompt = systemPrompt;
+    const updated = await this.conversationRepository.save(conversation);
+  
+    return new ConversationResponseDto({
+      id: updated.id,
+      title: updated.title,
+      systemPrompt: updated.systemPrompt,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
     });
   }
 
@@ -166,6 +207,7 @@ export class ChatService {
       return new ConversationResponseDto({
         id: conv.id,
         title: conv.title,
+        systemPrompt: conv.systemPrompt,
         createdAt: conv.createdAt,
         updatedAt: conv.updatedAt,
         lastMessage: lastMessage
@@ -201,6 +243,7 @@ export class ChatService {
     return new ConversationResponseDto({
       id: conversation.id,
       title: conversation.title,
+      systemPrompt: conversation.systemPrompt,
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
       messages: conversation.messages.map(

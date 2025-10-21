@@ -5,4 +5,9 @@ export class CreateConversationDto {
   @IsOptional()
   @MaxLength(100)
   title?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(2000)
+  systemPrompt?: string;
 }

@@ -10,6 +10,7 @@ import {
   Res,
   HttpCode,
   HttpStatus,
+  Put,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { ChatService } from './chat.service';
@@ -17,6 +18,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { ChatRequestDto } from './dto/chat-request.dto';
 import type { UIMessage } from 'ai';
+import { UpdateSystemPromptDto } from './dto/update-system-prompt.dto';
 
 @Controller('chat')
 @UseGuards(JwtAuthGuard)
@@ -106,5 +108,18 @@ export class ChatController {
     );
     
     return { title };
+  }
+
+  @Put('conversations/:id/system-prompt')
+  async updateSystemPrompt(
+    @Req() req,
+    @Param('id') conversationId: string,
+    @Body() body: UpdateSystemPromptDto,
+  ) {
+    return this.chatService.updateSystemPrompt(
+      conversationId,
+      req.user.userId,
+      body.systemPrompt,
+    );
   }
 }

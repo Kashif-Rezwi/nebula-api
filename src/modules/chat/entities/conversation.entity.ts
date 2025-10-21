@@ -25,6 +25,9 @@ import {
   
     @Column({ nullable: true })
     title: string;
+
+    @Column('text', { nullable: true })
+    systemPrompt?: string;
   
     @OneToMany(() => Message, (message) => message.conversation, {
       cascade: true,

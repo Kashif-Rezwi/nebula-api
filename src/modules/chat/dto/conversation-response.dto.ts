@@ -12,10 +12,12 @@ export class MessageResponseDto {
   export class ConversationResponseDto {
     id: string;
     title: string;
+    systemPrompt?: string;
     createdAt: Date;
     updatedAt: Date;
     messages?: MessageResponseDto[];
     lastMessage?: MessageResponseDto;
+    
   
     constructor(partial: Partial<ConversationResponseDto>) {
       Object.assign(this, partial);
