@@ -218,19 +218,8 @@ export class ChatService {
     conversationId: string,
     userId: string,
   ): Promise<ConversationResponseDto> {
-    const conversation = await this.conversationRepository.findOne({
-      where: { id: conversationId },
-      relations: ['messages'],
-    });
-
-    if (!conversation) {
-      throw new NotFoundException('Conversation not found');
-    }
-
-    if (conversation.userId !== userId) {
-      throw new ForbiddenException('Access denied');
-    }
-
+    const conversation = await this.verifyOwnershipWithMessages(conversationId, userId);
+  
     return new ConversationResponseDto({
       id: conversation.id,
       title: conversation.title,
@@ -254,6 +243,12 @@ export class ChatService {
     conversationId: string,
     userId: string,
   ): Promise<void> {
+    const conversation = await this.verifyOwnership(conversationId, userId);
+    await this.conversationRepository.remove(conversation);
+  }
+
+  // Verify conversation ownership
+  private async verifyOwnership(conversationId: string, userId: string): Promise<Conversation> {
     const conversation = await this.conversationRepository.findOne({
       where: { id: conversationId },
     });
@@ -266,13 +261,17 @@ export class ChatService {
       throw new ForbiddenException('Access denied');
     }
 
-    await this.conversationRepository.remove(conversation);
+    return conversation;
   }
 
-  // Verify conversation ownership
-  private async verifyOwnership(conversationId: string, userId: string): Promise<Conversation> {
+  // Verify conversation ownership and load messages
+  private async verifyOwnershipWithMessages(
+    conversationId: string,
+    userId: string,
+  ): Promise<Conversation> {
     const conversation = await this.conversationRepository.findOne({
       where: { id: conversationId },
+      relations: ['messages'],
     });
 
     if (!conversation) {
