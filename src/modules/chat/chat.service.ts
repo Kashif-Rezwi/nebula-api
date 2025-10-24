@@ -28,19 +28,26 @@ export class ChatService {
 
   // Convert database messages to UIMessage format for AI SDK
   private async getUIMessages(conversationId: string): Promise<UIMessage[]> {
+    // Single query with relation and ordering
     const conversation = await this.conversationRepository.findOne({
       where: { id: conversationId },
-    });
-  
-    const messages = await this.messageRepository.find({
-      where: { conversationId },
-      order: { createdAt: 'ASC' },
+      relations: ['messages'],
+      order: {
+        messages: {
+          createdAt: 'ASC',
+        },
+      },
     });
   
     const uiMessages: UIMessage[] = [];
   
+    // Return empty if conversation not found
+    if (!conversation) {
+      return uiMessages;
+    }
+  
     // Prepend system prompt if exists
-    if (conversation?.systemPrompt) {
+    if (conversation.systemPrompt) {
       uiMessages.push({
         id: 'system',
         role: 'system',
@@ -48,8 +55,8 @@ export class ChatService {
       });
     }
   
-    // Add regular messages
-    messages.forEach((msg) => {
+    // Add messages
+    conversation.messages.forEach((msg) => {
       uiMessages.push({
         id: msg.id,
         role: msg.role as 'user' | 'assistant' | 'system',
@@ -188,13 +195,13 @@ export class ChatService {
       order: { updatedAt: 'DESC' },
       relations: ['messages'],
     });
-
+  
     return conversations.map((conv) => {
       const lastMessage =
         conv.messages.length > 0
           ? conv.messages[conv.messages.length - 1]
           : null;
-
+  
       return new ConversationResponseDto({
         id: conv.id,
         title: conv.title,
@@ -203,11 +210,11 @@ export class ChatService {
         updatedAt: conv.updatedAt,
         lastMessage: lastMessage
           ? new MessageResponseDto({
-            id: lastMessage.id,
-            role: lastMessage.role,
-            content: lastMessage.content.substring(0, 100),
-            createdAt: lastMessage.createdAt,
-          })
+              id: lastMessage.id,
+              role: lastMessage.role,
+              content: lastMessage.content.substring(0, 100),
+              createdAt: lastMessage.createdAt,
+            })
           : undefined,
       });
     });
