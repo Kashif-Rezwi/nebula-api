@@ -15,6 +15,7 @@ import {
 } from './dto/conversation-response.dto';
 import { AIService } from './ai.service';
 import { UIMessage } from 'ai';
+import { CreateConversationWithMessageDto } from './dto/create-conversation-with-message.dto';
 
 @Injectable()
 export class ChatService {
@@ -106,28 +107,41 @@ export class ChatService {
     try {
       // Verify ownership first
       await this.verifyOwnership(conversationId, userId);
-
+  
       // Get the last user message (only process the latest)
       const lastUserMessage = messages[messages.length - 1];
       if (!lastUserMessage) {
         throw new InternalServerErrorException('No user message provided');
       }
-
+  
       // Get conversation history
       const historyMessages = await this.getUIMessages(conversationId);
-      const allMessages = [...historyMessages, lastUserMessage];
-
-      // Save user message first
-      await this.saveUIMessage(conversationId, lastUserMessage);
-
+      
+      // Check if this message already exists in history (by content)
+      const lastUserMessageText = this.extractTextFromUIMessage(lastUserMessage);
+      const lastHistoryMessage = historyMessages[historyMessages.length - 1];
+      const isDuplicate = 
+        lastHistoryMessage &&
+        lastHistoryMessage.role === 'user' &&
+        this.extractTextFromUIMessage(lastHistoryMessage) === lastUserMessageText;
+  
+      // Only save user message if it's not a duplicate
+      if (!isDuplicate) {
+        await this.saveUIMessage(conversationId, lastUserMessage);
+        historyMessages.push(lastUserMessage);
+      }
+  
+      // Combine all messages for AI context
+      const allMessages = historyMessages;
+  
       // Get StreamText result
       const result = this.aiService.streamResponse(allMessages);
-
+  
       // Return the AI SDK v5 Response object with onFinish callback
       return result.toUIMessageStreamResponse({
         originalMessages: messages,
         generateMessageId: () => this.generateMessageId(),
-
+  
         // Save the assistant's response after streaming completes
         onFinish: async ({ responseMessage }) => {
           await this.saveAssistantResponse(conversationId, responseMessage);
@@ -335,4 +349,48 @@ export class ChatService {
     return cleanTitle;
   }
 
+  // Create conversation with first message (no streaming)
+  async createConversationWithFirstMessage(
+    userId: string,
+    dto: CreateConversationWithMessageDto,
+  ) {
+    try {
+      // 1. Create conversation
+      const conversation = this.conversationRepository.create({
+        userId,
+        title: dto.title || 'Untitled',
+        systemPrompt: dto.systemPrompt,
+      });
+
+      const savedConversation = await this.conversationRepository.save(conversation);
+
+      // 2. Create and save user message
+      const userMessage = this.messageRepository.create({
+        conversationId: savedConversation.id,
+        role: MessageRole.USER,
+        content: dto.firstMessage,
+      });
+
+      await this.messageRepository.save(userMessage);
+
+      // 3. Update conversation timestamp
+      await this.conversationRepository.update(savedConversation.id, {
+        updatedAt: new Date(),
+      });
+
+      // 4. Return conversation data (the frontend will handle streaming on navigation)
+      return {
+        id: savedConversation.id,
+        title: savedConversation.title,
+        systemPrompt: savedConversation.systemPrompt,
+        createdAt: savedConversation.createdAt,
+        updatedAt: savedConversation.updatedAt,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Failed to create conversation with message: ${error.message}`,
+        { cause: error }
+      );
+    }
+  }
 }
