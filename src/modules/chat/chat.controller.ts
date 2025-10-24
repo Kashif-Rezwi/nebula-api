@@ -15,7 +15,6 @@ import {
 import type { Response } from 'express';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { CreateConversationDto } from './dto/create-conversation.dto';
 import { ChatRequestDto } from './dto/chat-request.dto';
 import type { UIMessage } from 'ai';
 import { UpdateSystemPromptDto } from './dto/update-system-prompt.dto';
@@ -39,17 +38,6 @@ export class ChatController {
   
     // Return conversation data as JSON (no streaming)
     return result;
-  }
-
-  @Post('conversations')
-  async createConversation(
-    @Req() req,
-    @Body() createConversationDto: CreateConversationDto,
-  ) {
-    return this.chatService.createConversation(
-      req.user.userId,
-      createConversationDto,
-    );
   }
 
   @Get('conversations')

@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Conversation } from './entities/conversation.entity';
 import { Message, MessageRole } from './entities/message.entity';
-import { CreateConversationDto } from './dto/create-conversation.dto';
 import {
   ConversationResponseDto,
   MessageResponseDto,
@@ -158,28 +157,6 @@ export class ChatService {
   // Generate unique message ID
   private generateMessageId(): string {
     return `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  // Create new conversation
-  async createConversation(
-    userId: string,
-    createConversationDto: CreateConversationDto,
-  ): Promise<ConversationResponseDto> {
-    const conversation = this.conversationRepository.create({
-      userId,
-      title: createConversationDto.title || 'Untitled',
-      systemPrompt: createConversationDto.systemPrompt,
-    });
-
-    const saved = await this.conversationRepository.save(conversation);
-
-    return new ConversationResponseDto({
-      id: saved.id,
-      title: saved.title,
-      systemPrompt: saved.systemPrompt,
-      createdAt: saved.createdAt,
-      updatedAt: saved.updatedAt,
-    });
   }
 
   // Update system prompt
