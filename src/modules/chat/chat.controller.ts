@@ -15,25 +15,29 @@ import {
 import type { Response } from 'express';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { CreateConversationDto } from './dto/create-conversation.dto';
 import { ChatRequestDto } from './dto/chat-request.dto';
 import type { UIMessage } from 'ai';
 import { UpdateSystemPromptDto } from './dto/update-system-prompt.dto';
+import { CreateConversationWithMessageDto } from './dto/create-conversation-with-message.dto';
 
 @Controller('chat')
 @UseGuards(JwtAuthGuard)
 export class ChatController {
   constructor(private chatService: ChatService) {}
-
-  @Post('conversations')
-  async createConversation(
+  
+  @Post('conversations/with-message')
+  async createConversationWithMessage(
     @Req() req,
-    @Body() createConversationDto: CreateConversationDto,
+    @Body() dto: CreateConversationWithMessageDto,
   ) {
-    return this.chatService.createConversation(
+    // Create conversation with the first message saved
+    const result = await this.chatService.createConversationWithFirstMessage(
       req.user.userId,
-      createConversationDto,
+      dto,
     );
+  
+    // Return conversation data as JSON (no streaming)
+    return result;
   }
 
   @Get('conversations')
