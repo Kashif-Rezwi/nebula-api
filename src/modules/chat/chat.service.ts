@@ -192,15 +192,26 @@ export class ChatService {
   ): Promise<ConversationResponseDto[]> {
     const conversations = await this.conversationRepository.find({
       where: { userId },
-      order: { updatedAt: 'DESC' },
-      relations: ['messages'],
+      order: { 
+        updatedAt: 'DESC',
+      },
+      relations: {
+        messages: true,
+      },
+      // Order messages within each conversation
+      relationLoadStrategy: 'query',  // Use separate query for better control
     });
   
+    // Manually sort messages and get the actual last one
     return conversations.map((conv) => {
-      const lastMessage =
-        conv.messages.length > 0
-          ? conv.messages[conv.messages.length - 1]
-          : null;
+      // Sort messages by createdAt to ensure correct order
+      const sortedMessages = [...conv.messages].sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+      
+      const lastMessage = sortedMessages.length > 0
+        ? sortedMessages[sortedMessages.length - 1]
+        : null;
   
       return new ConversationResponseDto({
         id: conv.id,
@@ -220,12 +231,16 @@ export class ChatService {
     });
   }
 
-  // Get single conversation with all messages
+  // Get single conversation with properly ordered messages
   async getConversation(
     conversationId: string,
     userId: string,
   ): Promise<ConversationResponseDto> {
-    const conversation = await this.verifyOwnershipWithMessages(conversationId, userId);
+    // Use the new method that includes ordering
+    const conversation = await this.verifyOwnershipWithOrderedMessages(
+      conversationId, 
+      userId
+    );
   
     return new ConversationResponseDto({
       id: conversation.id,
@@ -254,8 +269,11 @@ export class ChatService {
     await this.conversationRepository.remove(conversation);
   }
 
-  // Verify conversation ownership
-  private async verifyOwnership(conversationId: string, userId: string): Promise<Conversation> {
+  // Verify conversation ownership (without messages)
+  private async verifyOwnership(
+    conversationId: string, 
+    userId: string
+  ): Promise<Conversation> {
     const conversation = await this.conversationRepository.findOne({
       where: { id: conversationId },
     });
@@ -271,14 +289,19 @@ export class ChatService {
     return conversation;
   }
 
-  // Verify conversation ownership and load messages
-  private async verifyOwnershipWithMessages(
+  // Verify conversation ownership and load messages WITH ORDERING
+  private async verifyOwnershipWithOrderedMessages(
     conversationId: string,
     userId: string,
   ): Promise<Conversation> {
     const conversation = await this.conversationRepository.findOne({
       where: { id: conversationId },
       relations: ['messages'],
+      order: {
+        messages: {
+          createdAt: 'ASC'
+        },
+      },
     });
 
     if (!conversation) {
