@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Tool } from './interfaces/tool.interface';
+import z4 from 'zod/v4';
 
 // Central registry for all available tools, Acts as a service locator pattern for tools
 @Injectable()
@@ -69,7 +70,7 @@ export class ToolRegistry implements OnModuleInit {
     this.tools.forEach((tool) => {
       aiTools[tool.name] = {
         description: tool.description,
-        parameters: tool.parameters,
+        parameters: z4.toJSONSchema(tool.parameters, { target: 'openapi-3.0' }),
         execute: tool.execute.bind(tool), // Bind context
       };
     });

@@ -8,7 +8,6 @@ import { Message } from './entities/message.entity';
 
 // Tool system
 import { ToolRegistry } from './tools/tool.registry';
-import { ToolExecutorService } from './tools/tool-executor.service';
 import { ToolsConfig } from './tools/tools.config';
 
 // Tool implementations
@@ -27,7 +26,6 @@ import { TavilyService } from './tools/services/tavily.service';
     
     // Tool system
     ToolRegistry,
-    ToolExecutorService,
     ToolsConfig, // ← This auto-registers tools on startup
     
     // Tool implementations
