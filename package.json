@@ -30,6 +30,7 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.0",
+    "@tavily/core": "^0.5.12",
     "ai": "5.0.71",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",

@@ -15,6 +15,7 @@ import {
 import { AIService } from './ai.service';
 import { UIMessage } from 'ai';
 import { CreateConversationWithMessageDto } from './dto/create-conversation-with-message.dto';
+import { ToolRegistry } from './tools/tool.registry';
 
 @Injectable()
 export class ChatService {
@@ -24,6 +25,7 @@ export class ChatService {
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
     private aiService: AIService,
+    private toolRegistry: ToolRegistry,
   ) { }
 
   // Convert database messages to UIMessage format for AI SDK
@@ -111,10 +113,10 @@ export class ChatService {
     messages: UIMessage[],
   ) {
     try {
-      // Verify ownership first
+      // Verify ownership
       await this.verifyOwnership(conversationId, userId);
   
-      // Get the last user message (only process the latest)
+      // Get the last user message
       const lastUserMessage = messages[messages.length - 1];
       if (!lastUserMessage) {
         throw new InternalServerErrorException('No user message provided');
@@ -123,7 +125,7 @@ export class ChatService {
       // Get conversation history
       const historyMessages = await this.getUIMessages(conversationId);
       
-      // Check if this message already exists in history (by content)
+      // Check for duplicate message
       const lastUserMessageText = this.extractTextFromUIMessage(lastUserMessage);
       const lastHistoryMessage = historyMessages[historyMessages.length - 1];
       const isDuplicate = 
@@ -131,29 +133,38 @@ export class ChatService {
         lastHistoryMessage.role === 'user' &&
         this.extractTextFromUIMessage(lastHistoryMessage) === lastUserMessageText;
   
-      // Only save user message if it's not a duplicate
+      // Save user message if not duplicate
       if (!isDuplicate) {
         await this.saveUIMessage(conversationId, lastUserMessage);
         historyMessages.push(lastUserMessage);
       }
   
-      // Combine all messages for AI context
-      const allMessages = historyMessages;
+      // Get tools in AI SDK format
+      const tools = this.toolRegistry.toAISDKFormat();
+      
+      // Log available tools
+      if (Object.keys(tools).length > 0) {
+        console.log(`🔧 Available tools: ${Object.keys(tools).join(', ')}`);
+      }
   
-      // Get StreamText result
-      const result = this.aiService.streamResponse(allMessages);
+      // Get StreamText result with tools
+      const result = this.aiService.streamResponse(
+        historyMessages,
+        tools, // ← Pass tools here
+        5 // Max 5 tool call iterations
+      );
   
-      // Return the AI SDK v5 Response object with onFinish callback
+      // Return streaming response with tool support
       return result.toUIMessageStreamResponse({
         originalMessages: messages,
         generateMessageId: () => this.generateMessageId(),
   
-        // Save the assistant's response after streaming completes
+        // Save assistant's response after streaming completes
         onFinish: async ({ responseMessage }) => {
           await this.saveAssistantResponse(conversationId, responseMessage);
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       throw new InternalServerErrorException(
         `Chat streaming failed: ${error.message}`,
         { cause: error }
