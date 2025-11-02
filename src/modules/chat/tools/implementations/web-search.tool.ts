@@ -14,7 +14,7 @@ export interface WebSearchToolResult {
 // Web Search Tool - Searches the internet for current information
 @Injectable()
 export class WebSearchTool implements Tool<any, WebSearchToolResult> {
-  readonly name = 'web_search';
+  readonly name = 'tavily_web_search';
   
   readonly description = 
     'Search the web for current information, news, and real-time data. ' +

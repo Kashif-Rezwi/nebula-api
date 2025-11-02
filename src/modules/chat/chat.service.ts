@@ -141,16 +141,11 @@ export class ChatService {
   
       // Get tools in AI SDK format
       const tools = this.toolRegistry.toAISDKFormat();
-      
-      // Log available tools
-      if (Object.keys(tools).length > 0) {
-        console.log(`🔧 Available tools: ${Object.keys(tools).join(', ')}`);
-      }
   
-      // Get StreamText result with tools
+      // Get StreamText result with tools (if available)
       const result = this.aiService.streamResponse(
         historyMessages,
-        tools, // ← Pass tools here
+        tools,
         5 // Max 5 tool call iterations
       );
   
@@ -335,7 +330,7 @@ export class ChatService {
     // Verify ownership
     await this.verifyOwnership(conversationId, userId);
 
-    // Generate title using AI
+    // Generate title using AI (uses text model, not tool model)
     const messages: UIMessage[] = [
       {
         id: 'system',

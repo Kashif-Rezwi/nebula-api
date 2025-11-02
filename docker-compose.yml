@@ -40,6 +40,8 @@ services:
       JWT_EXPIRATION: 7d
       GROQ_API_KEY: ${GROQ_API_KEY}
       DEFAULT_AI_MODEL: ${DEFAULT_AI_MODEL}
+      AI_TEXT_MODEL: ${AI_TEXT_MODEL}
+      AI_TOOL_MODEL: ${AI_TOOL_MODEL}
       PORT: 3001
     depends_on:
       postgres:
