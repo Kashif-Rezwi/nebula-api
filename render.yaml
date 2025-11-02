@@ -42,7 +42,11 @@ services:
       - key: GROQ_API_KEY
         sync: false
       - key: DEFAULT_AI_MODEL
+        value: openai/gpt-oss-120b
+      - key: AI_TEXT_MODEL
         value: llama-3.1-8b-instant
+      - key: AI_TOOL_MODEL
+        value: llama-3.3-70b-versatile
       - key: NODE_ENV
         value: production
       - key: PORT
