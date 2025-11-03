@@ -98,7 +98,33 @@ export class ChatService {
     conversationId: string,
     responseMessage: UIMessage,
   ): Promise<void> {
-    await this.saveUIMessage(conversationId, responseMessage);
+    const content = this.extractTextFromUIMessage(responseMessage);
+
+    // EXTRACT TOOL CALL DATA FROM MESSAGE PARTS
+    const toolCalls: any[] = [];
+    
+    responseMessage.parts.forEach((part) => {
+      // Check for tool call parts
+      if (part.type?.startsWith('tool-') || part.type === 'dynamic-tool') {
+        toolCalls.push({
+          type: part.type,
+          toolName: (part as any).toolName || part.type.replace('tool-', ''),
+          state: (part as any).state,
+          output: (part as any).output,
+          errorText: (part as any).errorText,
+        });
+      }
+    });
+
+    // Create message with metadata
+    const dbMessage = this.messageRepository.create({
+      conversationId,
+      role: responseMessage.role as MessageRole,
+      content,
+      metadata: toolCalls.length > 0 ? { toolCalls } : undefined,
+    });
+
+    await this.messageRepository.save(dbMessage);
 
     // Update conversation timestamp
     await this.conversationRepository.update(conversationId, {
@@ -261,6 +287,7 @@ export class ChatService {
             role: msg.role,
             content: msg.content,
             createdAt: msg.createdAt,
+            metadata: msg.metadata,
           }),
       ),
     });

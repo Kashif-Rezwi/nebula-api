@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../interfaces/tool.interface';
 import { TavilyService, WebSearchResult } from '../services/tavily.service';
+import { SummaryService } from '../services/summary.service';
 
 // Tool result for web search
 export interface WebSearchToolResult {
@@ -9,6 +10,14 @@ export interface WebSearchToolResult {
   results: WebSearchResult[];
   resultsCount: number;
   searchedAt: string;
+  summary?: string;
+  citations?: Citation[];
+}
+
+interface Citation {
+  text: string;
+  sourceIndex: number;
+  url: string;
 }
 
 // Web Search Tool - Searches the internet for current information
@@ -43,7 +52,10 @@ export class WebSearchTool implements Tool<any, WebSearchToolResult> {
 
   private readonly logger = new Logger(WebSearchTool.name);
 
-  constructor(private readonly tavilyService: TavilyService) {}
+  constructor(
+    private readonly tavilyService: TavilyService,
+    private readonly summaryService: SummaryService,
+  ) {}
 
   async execute(params: z.infer<typeof this.parameters>): Promise<WebSearchToolResult> {
     const { query, maxResults = 5 } = params;
@@ -52,10 +64,12 @@ export class WebSearchTool implements Tool<any, WebSearchToolResult> {
 
     try {
       // Perform search with retry logic
-      const results = await this.tavilyService.searchWithRetry(
-        query, 
-        maxResults,
-        2 // Max 2 retries
+      const results = await this.tavilyService.searchWithRetry(query, maxResults, 2);
+
+      // Generate summary from results
+      const { summary, citations } = await this.summaryService.generateSearchSummary(
+        query,
+        results,
       );
 
       const toolResult: WebSearchToolResult = {
@@ -63,6 +77,8 @@ export class WebSearchTool implements Tool<any, WebSearchToolResult> {
         results,
         resultsCount: results.length,
         searchedAt: new Date().toISOString(),
+        summary,
+        citations,
       };
 
       this.logger.log(

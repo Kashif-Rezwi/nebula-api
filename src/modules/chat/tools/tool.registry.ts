@@ -34,7 +34,9 @@ export class ToolRegistry implements OnModuleInit {
     // Validate tool structure
     this.validateTool(tool);
 
-    this.tools.set(tool.name, tool);
+    const wrappedTool = this.wrapToolWithLogging(tool);
+    this.tools.set(tool.name, wrappedTool);
+
     this.logger.log(`✅ Registered tool: ${tool.name}`);
   }
 
@@ -66,7 +68,7 @@ export class ToolRegistry implements OnModuleInit {
   // Convert tools to AI SDK format
   toAISDKFormat(): Record<string, any> {
     const aiTools: Record<string, any> = {};
-
+  
     this.tools.forEach((tool) => {
       aiTools[tool.name] = {
         description: tool.description,
@@ -74,7 +76,7 @@ export class ToolRegistry implements OnModuleInit {
         execute: tool.execute.bind(tool),
       };
     });
-
+  
     this.logger.debug(`Converted ${this.tools.size} tools to AI SDK format`);
     return aiTools;
   }
@@ -117,6 +119,55 @@ export class ToolRegistry implements OnModuleInit {
     if (typeof tool.execute !== 'function') {
       throw new Error(`Tool '${tool.name}' must have an execute method`);
     }
+  }
+
+  private wrapToolWithLogging(tool: Tool): Tool {
+    const originalExecute = tool.execute.bind(tool);
+    
+    return {
+      ...tool,
+      execute: async (params: any) => {
+        const startTime = Date.now();
+        
+        // 📥 Log tool start
+        this.logger.log({
+          event: 'tool_execution_start',
+          tool: tool.name,
+          params: params,
+          timestamp: new Date().toISOString(),
+        });
+        
+        try {
+          // Execute the actual tool
+          const result = await originalExecute(params);
+          const duration = Date.now() - startTime;
+          
+          // ✅ Log tool success
+          this.logger.log({
+            event: 'tool_execution_success',
+            tool: tool.name,
+            duration: duration,
+            resultSize: JSON.stringify(result).length,
+            timestamp: new Date().toISOString(),
+          });
+          
+          return result;
+        } catch (error: any) {
+          const duration = Date.now() - startTime;
+          
+          // ❌ Log tool error
+          this.logger.error({
+            event: 'tool_execution_error',
+            tool: tool.name,
+            duration: duration,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+          });
+          
+          throw error;
+        }
+      }
+    };
   }
 
   // Clear all tools (useful for testing)

@@ -3,6 +3,7 @@ export class MessageResponseDto {
     role: string;
     content: string;
     createdAt: Date;
+    metadata?: Record<string, any>;
   
     constructor(partial: Partial<MessageResponseDto>) {
       Object.assign(this, partial);

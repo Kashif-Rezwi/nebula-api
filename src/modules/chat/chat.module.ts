@@ -15,6 +15,7 @@ import { WebSearchTool } from './tools/implementations/web-search.tool';
 
 // External services
 import { TavilyService } from './tools/services/tavily.service';
+import { SummaryService } from './tools/services/summary.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Conversation, Message])],
@@ -33,6 +34,7 @@ import { TavilyService } from './tools/services/tavily.service';
     
     // External services
     TavilyService,
+    SummaryService,
   ],
   exports: [ChatService],
 })

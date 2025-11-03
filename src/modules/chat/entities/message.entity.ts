@@ -36,6 +36,9 @@ import {
   
     @Column('text')
     content: string;
+
+    @Column('jsonb', { nullable: true })
+    metadata?: Record<string, any>;
   
     @CreateDateColumn()
     createdAt: Date;
