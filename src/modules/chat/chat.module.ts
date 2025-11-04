@@ -7,8 +7,8 @@ import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 
 // Tool system
-import { ToolRegistry } from './tools/tool.registry';
-import { ToolsConfig } from './tools/tools.config';
+import { ToolManager } from './tools/tool-manager.service';
+import { ToolRegistration } from './tools/tool-registration.service';
 
 // Tool implementations
 import { WebSearchTool } from './tools/implementations/web-search.tool';
@@ -26,9 +26,9 @@ import { SummaryService } from './tools/services/summary.service';
     AIService,
     
     // Tool system
-    ToolRegistry,
-    ToolsConfig, // ← This auto-registers tools on startup
-    
+    ToolManager,
+    ToolRegistration,
+
     // Tool implementations
     WebSearchTool,
     

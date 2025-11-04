@@ -15,7 +15,7 @@ import {
 import { AIService } from './ai.service';
 import { UIMessage } from 'ai';
 import { CreateConversationWithMessageDto } from './dto/create-conversation-with-message.dto';
-import { ToolRegistry } from './tools/tool.registry';
+import { ToolManager } from './tools/tool-manager.service';
 
 @Injectable()
 export class ChatService {
@@ -25,7 +25,7 @@ export class ChatService {
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
     private aiService: AIService,
-    private toolRegistry: ToolRegistry,
+    private toolManager: ToolManager,
   ) { }
 
   // Convert database messages to UIMessage format for AI SDK
@@ -165,9 +165,9 @@ export class ChatService {
         historyMessages.push(lastUserMessage);
       }
   
-      // Get tools in AI SDK format
-      const tools = this.toolRegistry.toAISDKFormat();
-  
+      // Get tools
+      const tools = this.toolManager.getTools();
+
       // Get StreamText result with tools (if available)
       const result = this.aiService.streamResponse(
         historyMessages,
