@@ -1,14 +1,14 @@
 services:
   # PostgreSQL Database
   - type: pserv
-    name: nebula-db
+    name: better-dev-db
     env: docker
     plan: free
     region: oregon
     
   # NestJS Backend
   - type: web
-    name: nebula-api
+    name: better-dev-api
     env: docker
     plan: free
     region: oregon
@@ -17,23 +17,23 @@ services:
     envVars:
       - key: DATABASE_HOST
         fromDatabase:
-          name: nebula-db
+          name: better-dev-db
           property: host
       - key: DATABASE_PORT
         fromDatabase:
-          name: nebula-db
+          name: better-dev-db
           property: port
       - key: DATABASE_USER
         fromDatabase:
-          name: nebula-db
+          name: better-dev-db
           property: user
       - key: DATABASE_PASSWORD
         fromDatabase:
-          name: nebula-db
+          name: better-dev-db
           property: password
       - key: DATABASE_NAME
         fromDatabase:
-          name: nebula-db
+          name: better-dev-db
           property: database
       - key: JWT_SECRET
         generateValue: true

@@ -1,20 +1,20 @@
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: nebula_postgres
+    container_name: better_dev_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: nebula_ai
-      POSTGRES_PASSWORD: nebula_ai
-      POSTGRES_DB: nebula_db
+      POSTGRES_USER: better_dev
+      POSTGRES_PASSWORD: better_dev
+      POSTGRES_DB: better_dev_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - nebula_network
+      - better_dev_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nebula_ai"]
+      test: ["CMD-SHELL", "pg_isready -U better_dev"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +23,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: nebula_app
+    container_name: better_dev_app
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -33,9 +33,9 @@ services:
       NODE_ENV: production
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
-      DATABASE_USER: nebula_ai
-      DATABASE_PASSWORD: nebula_ai
-      DATABASE_NAME: nebula_db
+      DATABASE_USER: better_dev
+      DATABASE_PASSWORD: better_dev
+      DATABASE_NAME: better_dev_db
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: 7d
       GROQ_API_KEY: ${GROQ_API_KEY}
@@ -47,7 +47,7 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - nebula_network
+      - better_dev_network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
@@ -56,7 +56,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: nebula_nginx
+    container_name: better_dev_nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -65,7 +65,7 @@ services:
     depends_on:
       - app
     networks:
-      - nebula_network
+      - better_dev_network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
@@ -73,7 +73,7 @@ services:
       retries: 3
 
 networks:
-  nebula_network:
+  better_dev_network:
     driver: bridge
 
 volumes:

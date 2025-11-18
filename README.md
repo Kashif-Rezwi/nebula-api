@@ -1,2 +1,2 @@
-# nebula-api
-Core server and API for Nebula, the AI chat platform.
+# better-dev-api
+Core server and API for Better DEV, the AI chat platform.

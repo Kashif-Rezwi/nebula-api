@@ -7,7 +7,7 @@ export class HealthController {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      service: 'nebula-ai-chat',
+      service: 'better-dev-ai-chat',
     };
   }
 }
