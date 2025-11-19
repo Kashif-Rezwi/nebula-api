@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "0.0.1",
-  "description": "Core server and API for Nebula, the AI chat platform.",
+  "description": "Core server and API for Better DEV, the AI chat platform.",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
@@ -96,11 +96,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kashif-Rezwi/nebula-api.git"
+    "url": "https://github.com/Kashif-Rezwi/better-dev-api.git"
   },
   "keywords": [],
   "bugs": {
-    "url": "https://github.com/Kashif-Rezwi/nebula-api/issues"
+    "url": "https://github.com/Kashif-Rezwi/better-dev-api/issues"
   },
-  "homepage": "https://github.com/Kashif-Rezwi/nebula-api#readme"
+  "homepage": "https://github.com/Kashif-Rezwi/better-dev-api#readme"
 }
