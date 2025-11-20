@@ -4,7 +4,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 export default registerAs(
   'database',
   (): TypeOrmModuleOptions => {
-    // Production uses DATABASE_URL (Render format)
+    // Production uses DATABASE_URL
     if (process.env.DATABASE_URL) {
       return {
         type: 'postgres',
@@ -12,7 +12,7 @@ export default registerAs(
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: false, // NEVER true in production! (can drop data)
         ssl: {
-          rejectUnauthorized: false, // Required for Render Postgres
+          rejectUnauthorized: false,
         },
         logging: false,
       };
