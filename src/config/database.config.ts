@@ -12,8 +12,8 @@ export default registerAs(
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: false, // NEVER true in production! (can drop data)
         ssl: {
-          rejectUnauthorized: false,
-        },
+          rejectUnauthorized: true,
+        },        
         logging: false,
       };
     }
